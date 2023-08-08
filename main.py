@@ -74,9 +74,9 @@ mediacinzaesquerda = (int(rgb_listcinza[0]) + int(rgb_listcinza[1]) + int(rgb_li
 
 mediacinzadireita = (int(rgb_listcinza[3]) + int(rgb_listcinza[4]) + int(rgb_listcinza[5]))/3
 
-mediacinzabrancodireito =(mediacinzadireita + float(rgb_media_listbrancosala3[0]))/2
+mdcbd =(mediacinzadireita + float(rgb_media_listbrancosala3[0]))/2
 
-mediacinzabrancoesquerdo = (mediacinzaesquerda + float(rgb_media_listbrancosala3[1]))/2
+mdcbe = (mediacinzaesquerda + float(rgb_media_listbrancosala3[1]))/2
 
 razaoave1 = azul_ec / vermelho_ec #1,6 
 razaoave2 = azul_ec / verde_ec #1,16
@@ -101,6 +101,20 @@ def DescerGarra():
 
 def SubirGarra(): 
     garra.run_target(500, 130)
+
+def MediaDireita():
+    rgbd = sld.rgb()
+    md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
+
+def MediaEsquerda():
+    rgbe = sle.rgb()
+    me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
+
+def Mediadosdois():
+    rgbd = sld.rgb()
+    md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
+    rgbe = sle.rgb()
+    me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
 
 def Calculopid():
     global erro
@@ -274,73 +288,63 @@ def Verde():
                     print("é falso esquerdo")
                     Calculopid()
 
+chavedefenda = 0 
+
 def Alinhar():
     rgbd = sld.rgb()
-    md = (rgbd[0] + rgbd[1] + rgbd[2])/3
     rgbe = sle.rgb()
-    me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-
-    errocbd = (mediacinzabrancodireito - md)
-    errocbe = (mediacinzabrancoesquerdo - me)
-
-    kpcbd = 10
-
-    kpcbe = 10
-
-    margem = 5
-
-    while ((me > mediacinzabrancoesquerdo + margem) or (me < mediacinzabrancoesquerdo - margem)) or ((md > mediacinzabrancodireito + margem) or (md < mediacinzabrancodireito - margem)):
+    if (((rgbe[0] * razaoave1) <= rgbe[2] and (rgbe[1] * razaoave2) <= rgbe[2]) or ((rgbd[0] * razaoavd1) <= rgbd[2] and (rgbd[1] * razaoavd2) <= rgbd[2])):
+        print("baraba")
+        base.stop()
+        wait(1000)
         rgbd = sld.rgb()
         md = (rgbd[0] + rgbd[1] + rgbd[2])/3
         rgbe = sle.rgb()
         me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-        errocbd = (mediacinzabrancodireito - md)
-        errocbe = (mediacinzabrancoesquerdo - me)
 
-        motor_direito.run(kpcbd * errocbd)
-        motor_esquerdo.run(kpcbe * errocbe) 
+        errocbd = (mdcbd - md)
+        errocbe = (mdcbe - me)
+
+        kpcb = 10
+
+        margem = 5
+
+        while ((me > mdcbe + margem) or (me < mdcbe - margem)) or ((md > mdcbd + margem) or (md < mdcbd - margem)):
+            rgbd = sld.rgb()
+            md = (rgbd[0] + rgbd[1] + rgbd[2])/3
+            rgbe = sle.rgb()
+            me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+            errocbd = (mdcbd - md)
+            errocbe = (mdcbe - me)
+
+            motor_esquerdo.run(kpcb*errocbe) 
+            motor_direito.run(kpcb*errocbd)
+        base.stop()
+        chavedefenda = 1
+        return chavedefenda
+
+def Sala3():
+    base.stop()
+    wait(500)
+    print("fencis trombe")
+    base.straight(1000)
+    wait(500)
+    base.turn(-350)
+    wait(1000)
+    base.straight(-250)
+    distancia = ultra.distance()
+    while ultra.distance() > distancia:
+        print("zyb")
+        wait(500)
+        distancia = ultra.distance()
+        
+    print("zeb")
     base.stop()
 
-
-def AcharSala3():
-    rgbd = sld.rgb() 
-    rgbe = sle.rgb()
-    if (((rgbe[0] * razaoave1) <= rgbe[2] and (rgbe[1] * razaoave2) <= rgbe[2]) or ((rgbd[0] * razaoavd1) <= rgbd[2] and (rgbd[1] * razaoavd2) <= rgbd[2])):
-        base.stop()
-        wait(1000)
-        base.straight(1000)
-        wait(1000)
-        '''base.drive(0, -100)
-        wait(2000)
-        distancia = ultra.distance()
-        while ultra.distance() > distancia:
-            base.straight(-100)
-            distancia = ultra.distance()
-            print('zab')
-            wait(500)
-        print('zub')
-        wait(500)
-        base.stop()'''
-
-'''garra.hold()
-while True:
+garra.hold()
+while Alinhar() != 1:
     Calculopid()
     Obstaculo()
     Verde()
-    AcharSala3()'''
-
-#ande enquanto a distancia aumentar para saber se está prensando    
-'''slf = ColorSensor(Port.S2)
-
-while True:
-    valor_reflexao = slf.reflection()
-    
-    print(valor_reflexao)
-    wait(1000)'''
-
-'''def Zub():
-    print('zub')
-
-garra.control.stall_tolerances(10, 300)
-garra.run_until_stalled(-10, Zub(), 10)'''
-
+    #Alinhar()
+Sala3()

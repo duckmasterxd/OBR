@@ -70,7 +70,7 @@ while ev3.buttons.pressed() != [Button.UP, Button.DOWN]:
     elif c == 1:
         ev3.screen.draw_text(50, 100, "Branco")
     elif c == 2:
-        ev3.screen.draw_text(50, 100, "Resgate")
+        ev3.screen.draw_text(50, 100, "Cinza")
     elif c == 3:
         ev3.screen.draw_text(50, 100, "Vítimas")
     elif c == 4:
