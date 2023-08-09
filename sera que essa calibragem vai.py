@@ -63,11 +63,9 @@ while ev3.buttons.pressed() != [Button.UP, Button.DOWN]:
         r,g,b = sld.rgb()
         calibbrancosala3direito = (r+g+b)/3
     elif ev3.buttons.pressed() == [Button.LEFT] and c == 4:
-        r,g,b = slf.rgb()
-        calibvermelhosala3 = [r, g, b]
+        calibvermelhosala3 = slf.rgb()
     elif ev3.buttons.pressed() == [Button.LEFT] and c == 5:
-        r,g,b = slf.rgb()
-        calibverdesala3 = [r, g, b]
+        calibverdesala3 = slf.rgb()
 
     if c < 0:
         c = c + 1
@@ -81,7 +79,7 @@ while ev3.buttons.pressed() != [Button.UP, Button.DOWN]:
         ev3.screen.draw_text(50, 100, "BrancoSala3")
     elif c == 4:
         ev3.screen.draw_text(50, 100, "VermelhoSala3")
-    elif c == 5: 
+    elif c == 5:
         ev3.screen.draw_text(50, 100, "VerdeSala3")
 
     elif c > 5:
@@ -91,8 +89,6 @@ manipulacao = calibesquerdoBB - calibdireitoBB
 calibtudao = str(calibesquerdo + calibdireito)
 calibresgatetudo = str(calibresgatee + calibresgated)
 calibbrancosala3tudo = str(calibbrancosala3direito) + ", " + str(calibbrancosala3esquerdo)
-vermelhosala3vdd = str(calibvermelhosala3)
-verdesala3vdd = str(calibverdesala3)
 
 with open("verde.txt", "w+") as calibragem:
     calibragem.write(calibtudao)
@@ -105,9 +101,9 @@ with open("resgate.txt", "w+") as calibragem:
 with open ("brancosala3.txt", "w+") as calibragem:
     calibragem.write(calibbrancosala3tudo)
 with open ("vermelhosala3.txt", "w+") as calibragem:
-    calibragem.write(vermelhosala3vdd)
+    calibragem.write(calibvermelhosala3)
 with open ("verdesala3.txt", "w+") as calibragem:
-    calibragem.write(verdesala3vdd)
+    calibragem.write(calibverdesala3)
 ev3.screen.clear()
 ev3.screen.draw_text(50, 100, "Finalizado.")
 wait(2000)

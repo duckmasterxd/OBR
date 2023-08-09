@@ -82,27 +82,27 @@ importvermelhosala3 = open("vermelhosala3.txt", "r")
 
 valoresvermelhosala3 = importvermelhosala3.readline()
 
-rgb_listvermelhosala3 = valoresvermelhosala3.split(", ")
+rgb_listvermelhosala3 = valoresvermelhosala3
 
-vermelho_ve = int(valoresvermelhosala3[0])
-verde_ve = int(valoresvermelhosala3[1])
-azul_ve = int(valoresvermelhosala3[2])
+vermelho_ve = int(rgb_listvermelhosala3[0])
+verde_ve = int(rgb_listvermelhosala3[1])
+azul_ve = int(rgb_listvermelhosala3[2])
 
 importverdesala3 = open("verdesala3.txt", "r")
 
 valoresverdesala3 = importverdesala3.readline()
 
-rgb_listverdesala3 = valoresverdesala3.split(", ") 
+rgb_listverdesala3 = valoresverdesala3 
 
 vermelho_vd = int(rgb_listverdesala3[0])
 verde_vd = int(rgb_listverdesala3[1])
 azul_vd = int(rgb_listverdesala3[2])
 
-rzslfverdevv = verde_vd / vermelho_vd
-rzslfverdeva = verde_vd / azul_vd 
+razaoslfverdevv = verde_vd / vermelho_vd
+razaoslfverdeva = verde_vd / azul_vd 
 
-rzslfredvv = vermelho_ve / verde_ve 
-rzslfredva = vermelho_ve / azul_ve
+razaoslfvermelhovv = vermelho_ve / verde_ve 
+razaoslfvermelhova = vermelho_ve / azul_ve
 
 razaoave1 = azul_ec / vermelho_ec #1,6 
 razaoave2 = azul_ec / verde_ec #1,16
@@ -148,10 +148,7 @@ def Calculopid():
     global i 
     global ultimoerro 
     global fp
-    rgbd = sld.rgb() 
-    rgbe = sle.rgb()
-    md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
-    me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
+    Mediadosdois()
     erro = 0 - ((md + manipulacaodenovo) - me)  #se o valor for positivo o sensor direito está vendo branco, ent precisa virar pra esquerda, e vice versa 
     i = i + erro
     d = erro - ultimoerro
@@ -160,58 +157,40 @@ def Calculopid():
     
     #curva de 90
     if (erro <= -85):  #curva para a esquerda
-        rgbd = sld.rgb()
-        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
+        MediaDireita()
         base.stop()
         wait(500) 
         base.straight(100)
         base.drive(0, -200) 
         while (md >= 75):
-            md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-            rgbd = sld.rgb()
+            MediaDireita()
         base.straight(-50)
-        rgbe = sle.rgb()
-        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+        MediaEsquerda()
         if (me <= 70):
             base.straight(50)
         base.drive(0, 200)
-        rgbd = sld.rgb() 
-        rgbe = sle.rgb()
-        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+        Mediadosdois()
         erro = 0 - (md - me)
         while (math.fabs(erro) >= 15):
-            rgbd = sld.rgb() 
-            rgbe = sle.rgb()
-            md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-            me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+            Mediadosdois()
             erro = 0 - (md - me)
     elif (erro >= 85):  #curva pra direita
-        rgbe = sle.rgb()
-        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+        MediaEsquerda()
         base.stop()
         wait(500) 
         base.straight(100)
         base.drive(0, 200) 
         while (me >= 75):
-            me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-            rgbe = sle.rgb()
+            MediaEsquerda()
         base.straight(-50)
-        rgbd = sld.rgb()
-        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
+        MediaDireita()
         if (md <= 70):
             base.straight(50)
         base.drive(0, -200) 
-        rgbd = sld.rgb() 
-        rgbe = sle.rgb()
-        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+        Mediadosdois()
         erro = 0 - (md - me)
         while (math.fabs(erro) >= 15):
-            rgbd = sld.rgb() 
-            rgbe = sle.rgb()
-            md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-            me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+            Mediadosdois()
             erro = 0 - (md - me)
 
 def Obstaculo(): #andar até encontrar linha
@@ -252,28 +231,23 @@ def Verde():
                 base.straight(375)
                 base.drive(0, -200)
                 wait(300)
-                rgbe = sle.rgb()
-                me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
+                MediaEsquerda() 
                 while (me >= 75):
                     wait(1500)
-                    rgbe = sle.rgb()
-                    me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
+                    MediaEsquerda() 
             else:
                 print("estou ali")
                 wait(500)                
-                rgbd = sld.rgb() 
-                md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
+                MediaDireita()
                 base.straight(80)
                 if (md <= 50):
                     print("curva verde direito")
-                    rgbe = sle.rgb()
-                    me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
+                    MediaEsquerda() 
                     base.straight(150)
                     base.drive(0, 200) 
                     wait(1500)
                     while (me >= 75):
-                        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-                        rgbe = sle.rgb() 
+                        MediaEsquerda()
                     base.straight(100) 
                 else:
                     print("é falso direito")
@@ -285,30 +259,25 @@ def Verde():
             rgbd = sld.rgb()
             if (((rgbd[0] * razaorgd) <= rgbd[1] and (rgbd[2] * razaobgd) <= rgbd[1]) and (rgbd[1] >= 30)):
                 print("epa duplo verde esquerdo")
-                rgbe = sle.rgb()
-                me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
+                MediaEsquerda() 
                 base.straight(200)
                 base.drive(0, -200)
                 while (me >= 75):
                     wait(50)
-                    rgbe = sle.rgb()
-                    me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+                    MediaEsquerda()
             else:
                 print("estou aqui")
                 wait(500) 
-                rgbe = sle.rgb()
-                me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
+                MediaEsquerda()
                 base.straight(80)
                 if (me <= 50):
                     print("curva verde esquerdo")
-                    rgbd = sld.rgb()
-                    md = (rgbd[0] + rgbd[1] + rgbd[2])/3 
+                    MediaDireita() 
                     base.straight(100)
                     base.drive(0, -200)
                     wait(1500)
                     while (md >= 75):
-                        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-                        rgbd = sld.rgb()
+                        MediaDireita()
                     base.straight(50)
                 else:
                     print("é falso esquerdo")
@@ -323,10 +292,7 @@ def Alinhar():
         print("baraba")
         base.stop()
         wait(1000)
-        rgbd = sld.rgb()
-        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-        rgbe = sle.rgb()
-        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+        Mediadosdois()
 
         errocbd = (mdcbd - md)
         errocbe = (mdcbe - me)
@@ -336,10 +302,7 @@ def Alinhar():
         margem = 5
 
         while ((me > mdcbe + margem) or (me < mdcbe - margem)) or ((md > mdcbd + margem) or (md < mdcbd - margem)):
-            rgbd = sld.rgb()
-            md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-            rgbe = sle.rgb()
-            me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+            Mediadosdois()
             errocbd = (mdcbd - md)
             errocbe = (mdcbe - me)
 
@@ -367,22 +330,10 @@ def Sala3():
     print("zeb")
     base.stop()
 
-"""garra.hold()
+garra.hold()
 while Alinhar() != 1:
     Calculopid()
     Obstaculo()
     Verde()
     #Alinhar()
-Sala3()"""
-
-motore_state = motor_esquerdo.state()
-motord_state = motor_direito.state()
-
-garra_state = garra.state()
-
-while True:
-    print("posição", garra_state.angle)
-    print("velocidade", garra_state.speed)
-    print("um tal de load", garra_state.load)
-    print("voltagem", garra_state.voltage)
-    wait(500)
+Sala3()
