@@ -78,11 +78,11 @@ mdcbd =(mediacinzadireita + float(rgb_media_listbrancosala3[0]))/2
 
 mdcbe = (mediacinzaesquerda + float(rgb_media_listbrancosala3[1]))/2
 
-importvermelhosala3 = open("vermelhosala3.txt", "r")
+"""importvermelhosala3 = open("vermelhosala3.txt", "r")
 
 valoresvermelhosala3 = importvermelhosala3.readline()
 
-rgb_listvermelhosala3 = valoresvermelhosala3.split(", ")
+rgb_listvermelhosala3 = valoresvermelhosala3[1:-1].split(", ")
 
 vermelho_ve = int(valoresvermelhosala3[0])
 verde_ve = int(valoresvermelhosala3[1])
@@ -92,7 +92,7 @@ importverdesala3 = open("verdesala3.txt", "r")
 
 valoresverdesala3 = importverdesala3.readline()
 
-rgb_listverdesala3 = valoresverdesala3.split(", ") 
+rgb_listverdesala3 = valoresverdesala3[1:-1].split(", ") 
 
 vermelho_vd = int(rgb_listverdesala3[0])
 verde_vd = int(rgb_listverdesala3[1])
@@ -101,9 +101,9 @@ azul_vd = int(rgb_listverdesala3[2])
 rzslfverdevv = verde_vd / vermelho_vd
 rzslfverdeva = verde_vd / azul_vd 
 
-rzslfredvv = vermelho_ve / verde_ve 
-rzslfredva = vermelho_ve / azul_ve
-
+rzslfredvv = vermelho_ve / verde_ve #3,54
+rzslfredva = vermelho_ve / azul_ve #39?
+"""
 razaoave1 = azul_ec / vermelho_ec #1,6 
 razaoave2 = azul_ec / verde_ec #1,16
 
@@ -123,24 +123,26 @@ razaorgd = razaorgd - 0.7
 razaobgd = razaobgd - 0.5
 
 def DescerGarra(): 
-    garra.run_target(500, -130)
+    garra.run(-180)
+    wait(1200)
+    garra.stop()
+    wait(500)
+    garra.hold()
 
 def SubirGarra(): 
-    garra.run_target(500, 130)
+    garra.run(180)
+    wait(1200)
+    garra.stop()
+    wait(100)
+    garra.run(-50)
+    wait(1200)
+    garra.run(70)
+    wait(800)
+    garra.stop()
+    wait(500)
+    garra.hold()
 
-def MediaDireita():
-    rgbd = sld.rgb()
-    md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
-
-def MediaEsquerda():
-    rgbe = sle.rgb()
-    me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
-
-def Mediadosdois():
-    rgbd = sld.rgb()
-    md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
-    rgbe = sle.rgb()
-    me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
+ultimoresettimer = time.time()
 
 def Calculopid():
     global erro
@@ -186,6 +188,7 @@ def Calculopid():
             md = (rgbd[0] + rgbd[1] + rgbd[2])/3
             me = (rgbe[0] + rgbe[1] + rgbe[2])/3
             erro = 0 - (md - me)
+        ultimoresettimer = time.time()
     elif (erro >= 85):  #curva pra direita
         rgbe = sle.rgb()
         me = (rgbe[0] + rgbe[1] + rgbe[2])/3
@@ -213,6 +216,7 @@ def Calculopid():
             md = (rgbd[0] + rgbd[1] + rgbd[2])/3
             me = (rgbe[0] + rgbe[1] + rgbe[2])/3
             erro = 0 - (md - me)
+        ultimoresettimer = time.time()
 
 def Obstaculo(): #andar até encontrar linha
     if ultra.distance() < 70:
@@ -231,6 +235,7 @@ def Obstaculo(): #andar até encontrar linha
         base.turn(350)
         wait(250)
         base.straight(-100)
+        ultimoresettimer = time.time()
     
 def Verde():
     rgbd = sld.rgb()
@@ -258,6 +263,7 @@ def Verde():
                     wait(1500)
                     rgbe = sle.rgb()
                     me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
+                ultimoresettimer = time.time()
             else:
                 print("estou ali")
                 wait(500)                
@@ -269,15 +275,18 @@ def Verde():
                     rgbe = sle.rgb()
                     me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
                     base.straight(150)
-                    base.drive(0, 200) 
+                    base.drive(0, 210) 
                     wait(1500)
                     while (me >= 75):
                         me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-                        rgbe = sle.rgb() 
-                    base.straight(100) 
+                        rgbe = sle.rgb()
+                    base.straight(50)
+                    base.drive(0, -50) 
+                    ultimoresettimer = time.time() 
                 else:
                     print("é falso direito")
                     Calculopid()
+                    ultimoresettimer = time.time()
         elif ((rgbe[0] * razaorge) <= rgbe[1] and (rgbe[2] * razaobge) <= rgbe[1]) and (rgbe[1] >= 30):
             print("achei verde esquerdo")
             base.stop()
@@ -293,6 +302,7 @@ def Verde():
                     wait(50)
                     rgbe = sle.rgb()
                     me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+                ultimoresettimer = time.time()
             else:
                 print("estou aqui")
                 wait(500) 
@@ -303,51 +313,56 @@ def Verde():
                     print("curva verde esquerdo")
                     rgbd = sld.rgb()
                     md = (rgbd[0] + rgbd[1] + rgbd[2])/3 
-                    base.straight(100)
+                    base.straight(100),
                     base.drive(0, -200)
                     wait(1500)
                     while (md >= 75):
                         md = (rgbd[0] + rgbd[1] + rgbd[2])/3
                         rgbd = sld.rgb()
                     base.straight(50)
+                    ultimoresettimer = time.time()
                 else:
                     print("é falso esquerdo")
                     Calculopid()
+                    ultimoresettimer = time.time()
 
 chavedefenda = 0 
 
 def Alinhar():
     rgbd = sld.rgb()
     rgbe = sle.rgb()
-    if (((rgbe[0] * razaoave1) <= rgbe[2] and (rgbe[1] * razaoave2) <= rgbe[2]) or ((rgbd[0] * razaoavd1) <= rgbd[2] and (rgbd[1] * razaoavd2) <= rgbd[2])):
-        print("baraba")
-        base.stop()
-        wait(1000)
-        rgbd = sld.rgb()
-        md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-        rgbe = sle.rgb()
-        me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-
-        errocbd = (mdcbd - md)
-        errocbe = (mdcbe - me)
-
-        kpcb = 10
-
-        margem = 5
-
-        while ((me > mdcbe + margem) or (me < mdcbe - margem)) or ((md > mdcbd + margem) or (md < mdcbd - margem)):
+    if ((((rgbe[0] * razaoave1) <= rgbe[2] and (rgbe[1] * razaoave2) <= rgbe[2]) and rgbe[2] > 60) or (((rgbd[0] * razaoavd1) <= rgbd[2] and (rgbd[1] * razaoavd2) <= rgbd[2]) and rgbd[2] > 60)):
+        base.straight(50)
+        if ((((rgbe[0] * razaoave1) <= rgbe[2] and (rgbe[1] * razaoave2) <= rgbe[2]) and rgbe[2] > 60) or (((rgbd[0] * razaoavd1) <= rgbd[2] and (rgbd[1] * razaoavd2) <= rgbd[2]) and rgbd[2] > 60)):
+            print("baraba")
+            base.stop()
+            wait(1000)
             rgbd = sld.rgb()
             md = (rgbd[0] + rgbd[1] + rgbd[2])/3
             rgbe = sle.rgb()
             me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+
             errocbd = (mdcbd - md)
             errocbe = (mdcbe - me)
 
-            motor_esquerdo.run(kpcb*errocbe) 
-            motor_direito.run(kpcb*errocbd)
-        base.stop()
-        chavedefenda = 1
-        return chavedefenda
+            kpcb = 10
+
+            margem = 5
+
+            while ((me > mdcbe + margem) or (me < mdcbe - margem)) or ((md > mdcbd + margem) or (md < mdcbd - margem)):
+                rgbd = sld.rgb()
+                md = (rgbd[0] + rgbd[1] + rgbd[2])/3
+                rgbe = sle.rgb()
+                me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+                errocbd = (mdcbd - md)
+                errocbe = (mdcbe - me)
+
+                motor_esquerdo.run(kpcb*errocbe) 
+                motor_direito.run(kpcb*errocbd)
+            base.stop()
+            chavedefenda = 1
+            return chavedefenda
+
 
 def Sala3():
     base.stop()
@@ -363,26 +378,38 @@ def Sala3():
         print("zyb")
         wait(500)
         distancia = ultra.distance()
-        
     print("zeb")
     base.stop()
+    wait(500)
+    DescerGarra()
+    base.straight(1000)
+    wait(500)
+    base.stop()
+    SubirGarra()
+    wait(1000)
+    base.turn(200)
 
-"""garra.hold()
-while Alinhar() != 1:
+estounarampa = False 
+
+def VerificarRampa():
+    if time.time() - ultimoresettimer > 5:
+        base.turn(90) #90 graus é a intenção
+        wait(1000) #dps tem que trocar
+        if ultra.distance() < 70:
+            estounarampa = True  
+        else: 
+            estounarampa = False
+        base.turn(-90)
+            
+
+garra.hold()
+ultimoresettimer = time.time()
+while estounarampa == False:
     Calculopid()
     Obstaculo()
     Verde()
     #Alinhar()
-Sala3()"""
-
-motore_state = motor_esquerdo.state()
-motord_state = motor_direito.state()
-
-garra_state = garra.state()
-
-while True:
-    print("posição", garra_state.angle)
-    print("velocidade", garra_state.speed)
-    print("um tal de load", garra_state.load)
-    print("voltagem", garra_state.voltage)
-    wait(500)
+while chavedefenda != 1:
+    Alinhar()
+    Calculopid()
+Sala3()
