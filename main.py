@@ -24,11 +24,11 @@ i = 0
 d = 0
 pid = 0
 ultimoerro = 0
-kp = 4
+kp = 6
 ki = 0.01
 kd = 1.8
 base = DriveBase(motor_esquerdo, motor_direito, wheel_diameter = 95, axle_track = 127)
-fp = 270
+fp = 300
 rgbd = list
 rgbe = list
 os.system('setfont Lat15-TerminusBold14')
@@ -150,6 +150,8 @@ def Calculopid():
     global i 
     global ultimoerro 
     global fp
+    global ki 
+    global kp 
     rgbd = sld.rgb() 
     rgbe = sle.rgb()
     md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
@@ -392,23 +394,27 @@ def Sala3():
 estounarampa = False 
 
 def VerificarRampa():
-    if time.time() - ultimoresettimer > 5:
-        base.turn(90) #90 graus é a intenção
-        wait(1000) #dps tem que trocar
+    global ultimoresettimer
+    if time.time() - ultimoresettimer > 10:
+        base.turn(335) #90 graus é a intenção
+        wait(1000)
         if ultra.distance() < 70:
-            estounarampa = True  
+            estounarampa = True 
+            fp = 500
+            kp = 8
         else: 
             estounarampa = False
-        base.turn(-90)
-            
-
+            print("greg")
+            ultimoresettimer = time.time()
+        base.turn(-335)
+       
 garra.hold()
 ultimoresettimer = time.time()
 while estounarampa == False:
     Calculopid()
     Obstaculo()
     Verde()
-    #Alinhar()
+    VerificarRampa()
 while chavedefenda != 1:
     Alinhar()
     Calculopid()
