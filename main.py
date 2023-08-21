@@ -78,15 +78,15 @@ mdcbd =(mediacinzadireita + float(rgb_media_listbrancosala3[0]))/2
 
 mdcbe = (mediacinzaesquerda + float(rgb_media_listbrancosala3[1]))/2
 
-"""importvermelhosala3 = open("vermelhosala3.txt", "r")
+importvermelhosala3 = open("vermelhosala3.txt", "r")
 
 valoresvermelhosala3 = importvermelhosala3.readline()
 
 rgb_listvermelhosala3 = valoresvermelhosala3[1:-1].split(", ")
 
-vermelho_ve = int(valoresvermelhosala3[0])
-verde_ve = int(valoresvermelhosala3[1])
-azul_ve = int(valoresvermelhosala3[2])
+vermelho_ve = float(rgb_listvermelhosala3[0])
+verde_ve = float(rgb_listvermelhosala3[1])
+azul_ve = float(rgb_listvermelhosala3[2])
 
 importverdesala3 = open("verdesala3.txt", "r")
 
@@ -94,16 +94,17 @@ valoresverdesala3 = importverdesala3.readline()
 
 rgb_listverdesala3 = valoresverdesala3[1:-1].split(", ") 
 
-vermelho_vd = int(rgb_listverdesala3[0])
-verde_vd = int(rgb_listverdesala3[1])
-azul_vd = int(rgb_listverdesala3[2])
+vermelho_vd = float(rgb_listverdesala3[0])
+verde_vd = float(rgb_listverdesala3[1])
+azul_vd = float(rgb_listverdesala3[2])
 
 rzslfverdevv = verde_vd / vermelho_vd
 rzslfverdeva = verde_vd / azul_vd 
 
-rzslfredvv = vermelho_ve / verde_ve #3,54
-rzslfredva = vermelho_ve / azul_ve #39?
-"""
+#rz = razao, slf = sensor, red = vermelho, vv = vermelho e verde, va = vermelho e azul 
+#rzslfredvv = vermelho_ve / verde_ve #3,54
+#rzslfredva = vermelho_ve / azul_ve #39?
+
 razaoave1 = azul_ec / vermelho_ec #1,6 
 razaoave2 = azul_ec / verde_ec #1,16
 
@@ -143,6 +144,7 @@ def SubirGarra():
     garra.hold()
 
 ultimoresettimer = time.time()
+timerdasala3 = time.time()
 
 def Calculopid():
     global erro
@@ -365,16 +367,19 @@ def Alinhar():
             chavedefenda = 1
             return chavedefenda
 
-
 def Sala3():
     base.stop()
     wait(500)
     print("fencis trombe")
+    DescerGarra()
+    wait(1000)
     base.straight(1000)
     wait(500)
+    SubirGarra()
+    wait(1000)
     base.turn(-350)
     wait(1000)
-    base.straight(-250)
+    base.straight(-300)
     distancia = ultra.distance()
     while ultra.distance() > distancia:
         print("zyb")
@@ -384,12 +389,39 @@ def Sala3():
     base.stop()
     wait(500)
     DescerGarra()
-    base.straight(1000)
+    base.straight(900)
     wait(500)
     base.stop()
     SubirGarra()
     wait(1000)
     base.turn(200)
+    timerdasala3 = time.time()
+    base.drive(300, 0)
+    while ((ultra.distance() > 70) and time.time() - timerdasala3 < 13):
+        pass
+    rgbslf = slf.rgb()
+    if (rgbslf[1] < rgbslf[0] and rgbslf[2] < rgbslf[0]) or ((rgbslf[0] * rzslfverdevv) <= rgbslf[1] and (rgbslf[2] * rzslfverdeva) <= rgbslf[1]): 
+        print("achei a area de resgate ocasião1")
+        base.stop()
+        wait(1000)
+        base.straight(-100)
+        base.turn(400)
+        base.straight(-800)
+        porta_cacamba.run(100)
+        wait(500)
+        base.straight(100)
+        base.straight(-200)
+
+    
+    else: 
+        base.turn(350)
+        distancia = ultra.distance()
+        base.straight(-250)
+        while ultra.distance() > distancia:
+            print("zyb")
+            wait(500)
+            distancia = ultra.distance()
+
 
 estounarampa = False 
 
@@ -407,8 +439,8 @@ def VerificarRampa():
             print("greg")
             ultimoresettimer = time.time()
         base.turn(-335)
-       
-garra.hold()
+          
+"""garra.hold()
 ultimoresettimer = time.time()
 while estounarampa == False:
     Calculopid()
@@ -418,4 +450,9 @@ while estounarampa == False:
 while chavedefenda != 1:
     Alinhar()
     Calculopid()
+Sala3()"""
+
+while Alinhar() != 1:
+    pass
+print("psi psi")
 Sala3()
