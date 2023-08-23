@@ -431,11 +431,12 @@ def Sala3():
         wait(1000)
         base.straight(100)
         base.straight(-200)
+        base.straight(80)
         base.turn(-350)
         DescerGarra()
         timerdasala3 = time.time()
         base.drive(300, 0)
-        while ((ultra.distance() > 100) and time.time() - timerdasala3 < 2):
+        while ((ultra.distance() > 150) and time.time() - timerdasala3 < 2):
             pass
         SubirGarra()
         rgbslf = slf.rgb()
@@ -455,6 +456,7 @@ def Sala3():
             wait(2000)
             base.straight(100)
             base.straight(-200)
+            base.straight(80)
             base.turn(-350)
             DescerGarra()
             timerdasala3 = time.time()
