@@ -94,6 +94,9 @@ calibbrancosala3tudo = str(calibbrancosala3direito) + ", " + str(calibbrancosala
 vermelhosala3vdd = str(calibvermelhosala3)
 verdesala3vdd = str(calibverdesala3)
 
+print("média direito", calibbrancosala3direito)
+print("média esquerdo", calibbrancosala3esquerdo)
+
 with open("verde.txt", "w+") as calibragem:
     calibragem.write(calibtudao)
     print(calibtudao)
