@@ -11,6 +11,8 @@ import time
 import os 
 ev3 = EV3Brick()
 
+#definicao de motores e sensores
+
 motor_esquerdo = Motor(Port.B)
 motor_direito = Motor(Port.D)
 garra = Motor(Port.C)
@@ -19,6 +21,9 @@ sld = ColorSensor(Port.S1)
 sle = ColorSensor(Port.S2)
 ultra = UltrasonicSensor(Port.S3)
 slf = ColorSensor(Port.S4)
+
+#definicao de variaveis e calculo de base (medidas do robô para mover ambos motores simultaneamente)
+
 erro = 0 
 i = 0
 d = 0
@@ -33,6 +38,8 @@ rgbd = list
 rgbe = list
 os.system('setfont Lat15-TerminusBold14')
 
+#arquivos de calibragem, medias e etc
+
 manipulacao = open("branco.txt", "r")
 
 manipulacaodenovo = float(manipulacao.readline())
@@ -42,6 +49,8 @@ importrgb = open("verde.txt", "r")
 
 valoresverde = importrgb.readline()
 rgb_list = valoresverde[1:-1].split(", ")
+
+#int = transformar em numero inteiro
 
 vermelho_e = int(rgb_list[0])
 verde_e = int(rgb_list[1])
@@ -74,6 +83,8 @@ mediacinzaesquerda = (int(rgb_listcinza[0]) + int(rgb_listcinza[1]) + int(rgb_li
 
 mediacinzadireita = (int(rgb_listcinza[3]) + int(rgb_listcinza[4]) + int(rgb_listcinza[5]))/3
 
+#transformar string (linha) em float (flutuante)
+
 mdcbd =(mediacinzadireita + float(rgb_media_listbrancosala3[0]))/2
 
 mdcbe = (mediacinzaesquerda + float(rgb_media_listbrancosala3[1]))/2
@@ -98,6 +109,9 @@ vermelho_vd = float(rgb_listverdesala3[0])
 verde_vd = float(rgb_listverdesala3[1])
 azul_vd = float(rgb_listverdesala3[2])
 
+#se o sensor de cor da frente identificar um valor rgb = 0 ele substitui o valor por 1.5 para não executar 
+#uma divisão por 0 
+
 if vermelho_vd == 0: 
     vermelho_vd = 1.5
 
@@ -114,6 +128,8 @@ if verde_ve == 0:
 
 if azul_ve == 0:
     azul_ve = 1.5
+
+#razoes para verde, vermelho e margem de erro
 
 rzslfredvv = vermelho_ve / verde_ve #3,54
 rzslfredva = vermelho_ve / azul_ve #39?
@@ -152,6 +168,8 @@ def SubirGarra():
     wait(600)
     garra.hold()
 
+#definicoes de timer 
+#timer pega a data desde a epoque e subtrai do novo valor de timer para ver quanto tempo se passou desde a epoque
 ultimoresettimer = time.time()
 timerdasala3 = time.time()
 
@@ -174,7 +192,7 @@ def Calculopid():
     base.drive(fp, pid)
     
     #curva de 90
-    if (erro <= -40):  #curva para a esquerda
+    if (erro <= -40) and not(((rgbe[0] * razaorge) <= rgbe[1] and (rgbe[2] * razaobge) <= rgbe[1])):  #curva para a esquerda
         rgbd = sld.rgb()
         md = (rgbd[0] + rgbd[1] + rgbd[2])/3
         base.stop()
@@ -184,10 +202,9 @@ def Calculopid():
         while (md >= 25):
             md = (rgbd[0] + rgbd[1] + rgbd[2])/3
             rgbd = sld.rgb()
-        base.straight(-50)
         rgbe = sle.rgb()
         me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-        if (me <= 20):
+        if (me <= 30):
             base.straight(50)
         base.drive(0, 200)
         rgbd = sld.rgb() 
@@ -201,7 +218,7 @@ def Calculopid():
             md = (rgbd[0] + rgbd[1] + rgbd[2])/3
             me = (rgbe[0] + rgbe[1] + rgbe[2])/3
             erro = 0 - (md - me)
-    elif (erro >= 40):  #curva pra direita
+    elif (erro >= 40) and not(((rgbd[0] * razaorgd) <= rgbd[1] and (rgbd[2] * razaobgd) <= rgbd[1])):  #curva pra direita
         rgbe = sle.rgb()
         me = (rgbe[0] + rgbe[1] + rgbe[2])/3
         base.stop()
@@ -214,7 +231,7 @@ def Calculopid():
         base.straight(-50)
         rgbd = sld.rgb()
         md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-        if (md <= 20):
+        if (md <= 30):
             base.straight(50)
         base.drive(0, -200) 
         rgbd = sld.rgb() 
@@ -229,41 +246,39 @@ def Calculopid():
             me = (rgbe[0] + rgbe[1] + rgbe[2])/3
             erro = 0 - (md - me)
 
-def Obstaculo(): #andar até encontrar linha
+def Obstaculo(): 
+    global ultimoresettimer
     if ultra.distance() < 70:
+        ultimoresettimer = time.time()
         base.straight(-200)
         base.turn(290)
         base.straight(600)
         wait(500)
         base.turn(-290)
         wait(250)
-        ultimoresettimer = time.time()
-        base.straight(1050)
-        ultimoresettimer = time.time()
+        base.straight(1200)
         wait(500)
-        base.turn(-320)
-        wait(250)
+        base.drive(0, -200)
+        wait(1500)
         rgbd = sld.rgb() 
         md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-        base.drive(200, 0)
+        base.drive(200, 0) #andar até encontrar linha
         while (md >= 25):
             rgbd = sld.rgb()
             md = (rgbd[0] + rgbd[1] + rgbd[2])/3
         wait(500)
         base.straight(100)
-        ultimoresettimer = time.time()
         rgbe = sle.rgb() 
         me = (rgbe[0] + rgbe[1] + rgbe[2])/3
         base.drive(0, 100)
-        while (me >= 25):
+        while (me >= 45):
             rgbe = sle.rgb()
             me = (rgbe[0] + rgbe[1] + rgbe[2])/3
-        wait(250)
-        base.straight(-50)
         wait(1000)
         ultimoresettimer = time.time()
     
 def Verde():
+    global ultimoresettimer
     rgbd = sld.rgb()
     rgbe = sle.rgb()
 
@@ -271,16 +286,16 @@ def Verde():
         base.stop()
         wait(1000)
         ultimoresettimer = time.time()
-        print("comeco do verde")
+        print("Comeco do verde")
         if ((rgbd[0] * razaorgd) <= rgbd[1] and (rgbd[2] * razaobgd) <= rgbd[1]):
             base.stop()
             wait(500)
-            print("estou verificando")
+            print("Estou verificando")
             rgbe = sle.rgb()
             if ((rgbe[0] * razaorge) <= rgbe[1] and (rgbe[2] * razaobge) <= rgbe[1]):
                 base.stop()
                 wait(1000)
-                print("duplo verde direito")
+                print("Duplo verde direito")
                 base.drive(0, -200)
                 wait(2000)
                 base.drive(0, -200)
@@ -289,16 +304,22 @@ def Verde():
                 while (md >= 25):
                     rgbd = sld.rgb()
                     md = (rgbd[0] + rgbd[1] + rgbd[2])/3 
-                base.straight(-100)
+                rgbe = sle.rgb()
+                me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+                if (me <= 30):
+                    base.straight(50)
+                base.drive(0, 200)
+                rgbe = sle.rgb()
+                me = (rgbe[0] + rgbe[1] + rgbe[2])/3
                 ultimoresettimer = time.time()
             else:
-                print("estou ali")
+                print("Estou no direito")
                 wait(500)                
                 rgbd = sld.rgb() 
                 md = ((rgbd[0] + rgbd[1] + rgbd[2])/3)
                 base.straight(80)
                 if (md <= 50):
-                    print("curva verde direito")
+                    print("Curva verde direito")
                     rgbe = sle.rgb()
                     me = (rgbe[0] + rgbe[1] + rgbe[2])/3 
                     base.straight(70)
@@ -310,16 +331,16 @@ def Verde():
                     base.straight(50) 
                     ultimoresettimer = time.time() 
                 else:
-                    print("é falso direito")
+                    print("É falso direito")
                     Calculopid()
                     ultimoresettimer = time.time()
         elif ((rgbe[0] * razaorge) <= rgbe[1] and (rgbe[2] * razaobge) <= rgbe[1]):
-            print("achei verde esquerdo")
+            print("Achei verde esquerdo")
             base.stop()
             wait(1000)
             rgbd = sld.rgb()
             if ((rgbd[0] * razaorgd) <= rgbd[1] and (rgbd[2] * razaobgd) <= rgbd[1]):
-                print("epa duplo verde esquerdo")
+                print("Epa duplo verde esquerdo")
                 rgbd = sld.rgb()
                 md = (rgbd[0] + rgbd[1] + rgbd[2])/3 
                 base.drive(0, -200)
@@ -328,16 +349,22 @@ def Verde():
                 while (md >= 25):
                     rgbd = sld.rgb()
                     md = (rgbd[0] + rgbd[1] + rgbd[2])/3
-                base.straight(-100)
+                rgbe = sle.rgb()
+                me = (rgbe[0] + rgbe[1] + rgbe[2])/3
+                if (me <= 30):
+                    base.straight(50)
+                base.drive(0, 200)
+                rgbe = sle.rgb()
+                me = (rgbe[0] + rgbe[1] + rgbe[2])/3
                 ultimoresettimer = time.time()
             else:
-                print("estou aqui")
+                print("Estou no esquerdo")
                 wait(500) 
                 rgbe = sle.rgb()
                 me = ((rgbe[0] + rgbe[1] + rgbe[2])/3)
                 base.straight(80)
                 if (me <= 50):
-                    print("curva verde esquerdo") 
+                    print("Curva verde esquerdo") 
                     base.straight(70)
                     rgbd = sld.rgb()
                     md = (rgbd[0] + rgbd[1] + rgbd[2])/3
@@ -349,11 +376,15 @@ def Verde():
                     base.straight(50)
                     ultimoresettimer = time.time()
                 else:
-                    print("é falso esquerdo")
+                    print("É falso esquerdo")
                     Calculopid()
                     ultimoresettimer = time.time()
 
-chavedefenda = 0 
+#termo que funciona como especie de booleano para a programacao ir para o looping principal
+alinhei = 0 
+
+#alinhar consiste em o robô alinhar-se perpendicularmente à fita prateada que dá inicio a sala3
+#usando a media dos sensores esquerdo e direito, do branco e da fita prateada, garantindo precisão 
 
 def Alinhar():
     rgbd = sld.rgb()
@@ -387,10 +418,14 @@ def Alinhar():
                 motor_esquerdo.run(kpcb*errocbe) 
                 motor_direito.run(kpcb*errocbd)
             base.stop()
-            chavedefenda = 1
-            return chavedefenda
+            alinhei = 1
+            return alinhei
+
+#definicoes de booleano para as areas de resgate, assim o robô ao final de executar a varredura
+#irá verificar o que é verdadeiro e o que é falso, assim o robô toma a "decisão" para qual area de resgate
+#irá depositar as vitimas e kit de resgate
+
 areasupd = False 
-areasupe = False
 areainfe = False
 
 def Sala3():
@@ -412,12 +447,12 @@ def Sala3():
     base.stop()
     wait(1000)
     if time.time() - timerdasala3 > 5:
-        print("nao achei area supd")
+        print("Nao achei area supd")
         areasupd = False
         base.straight(-300)
         wait(1000)
     else: 
-        print("achei area supd")
+        print("Achei area supd")
         areasupd = True
         base.straight(-200)
         wait(1000)
@@ -460,190 +495,99 @@ def Sala3():
     base.drive(0, -200)
     wait(2000)
     timerdasala3 = time.time()
-    base.drive(0, 50)
+    base.drive(50, 0)
     while ultra.distance() > 70:
         pass
-    if time.time() - timerdasala3 > 2:
-        print("nao achei area infe")
+    base.stop()
+    wait(1000)
+    if time.time() - timerdasala3 > 5:
+        print("Nao achei area infe")
         areainfe = False
         wait(1000)
+        base.straight(-300)
     else: 
-        print("achei area infe")
+        print("Achei area infe")
         areainfe = True
         wait(1000)
-    """base.straight(1550)
-    wait(500)
-    SubirGarra()
-    wait(1000)
-    base.stop()
-    wait(1000)
-    base.straight(-100)
+        base.straight(-100)
+    base.drive(0, 200)
+    wait(1500)
+    base.straight(-400)
     DescerGarra()
-    base.drive(200, -200)
     wait(1000)
-    distancia = ultra.distance()
-    base.drive(-300, 0)
+    base.straight(850)
+    SubirGarra()
+    base.drive(0, -200)
+    wait(1500)
+    base.stop()
+    DescerGarra()
     wait(2000)
-    while ultra.distance() > distancia:
-        print("Estou me enquadrando na parede")
-        distancia = ultra.distance()
-    print("Enquadrei")
+    base.straight(500)
     base.stop()
-    wait(500)
-    DescerGarra()
-    base.drive(250, 0)
-    wait(3800)
-    base.stop()
-    wait(1000)
     SubirGarra()
-    wait(1000)
-    base.turn(-380)
-    DescerGarra()
-    base.stop()
-    wait(1000)
-    print("chama")
-    base.drive(100, 0)
     wait(2000)
-    SubirGarra()
-    base.stop()
-    wait(1000)
-    base.turn(750)
-    base.drive(-150, 0)
-    wait(4000)
-    base.stop()
-    wait(1000)
     DescerGarra()
-    base.drive(300, -30)
-    wait(3000)
+    wait(2000)
+    base.drive(0, 200)
+    wait(2000)
+    base.straight(-500)
+    base.stop()
     SubirGarra()
-    base.drive(100, 0)
-    wait(500)
-    while ultra.distance() > 50:
-        pass
+    wait(2000)
+    DescerGarra()
+    wait(2000)
+    base.straight(750)
+    base.drive(0, -200)
+    wait(1500)
+    base.straight(750)
+    SubirGarra()
+    base.straight(-500)
     base.stop()
     wait(1000)
-    rgbslf = slf.rgb()
-    if ((rgbslf[1] * rzslfredvv) < rgbslf[0] and (rgbslf[2] * rzslfredva) < rgbslf[0]) or ((rgbslf[0] * rzslfverdevv) <= rgbslf[1] and (rgbslf[2] * rzslfverdeva) <= rgbslf[1]): 
-        print("achei a area de resgate ocasião1.1")
-        base.stop()
-        wait(1000)
-        base.straight(-50)
-        base.turn(800)
-        base.straight(-150)
+    if areasupd == True and areainfe == True:
+        print("estou na sala3.1")
+        base.drive(0, -200)
+        wait(2000)
+        base.drive(100, 0)
+        while ultra.distance() > 70:
+            pass
+        base.drive(0, -200)
+        wait(5000)
+        base.straight(-300)
         cacamba.run(-300)
-        wait(1000)
-        base.stop()
-        wait(3000)
+        wait(2000)
         cacamba.hold()
-        base.drive(300, -100)
-        wait(4000)
-        base.stop()
-        wait(1000)
+    if areasupd == True and areainfe == False:
+        print("estou na sala3.2")
+        base.drive(0, 200)
+        wait(1800)
         base.drive(100, 0)
-        wait(500)
-        while ultra.distance() > 50:
+        while ultra.distance() > 70:
             pass
-        base.stop()
-        wait(1000)
-        rgbslf = slf.rgb()
-        if ((rgbslf[1] * rzslfredvv) < rgbslf[0] and (rgbslf[2] * rzslfredva) < rgbslf[0]) or ((rgbslf[0] * rzslfverdevv) <= rgbslf[1] and (rgbslf[2] * rzslfverdeva) <= rgbslf[1]): 
-            print("achei a area de resgate ocasião1.2")
-            base.stop()
-            wait(1000)
-            base.straight(-50)
-            base.turn(800)
-            base.straight(-100)
-            wait(1000)
-            base.stop()
-            wait(1000)
-            DescerGarra()
-            base.drive(300, -30)
-            wait(2000)
-            SubirGarra()
-            wait(1000)
-            base.turn(-400)
-            base.drive(-100, 0)
-            wait(1500)
-            base.drive(250, 0)
-            wait(1000)
-            base.turn(-350)
-            base.drive(250, 0)
-            while ultra.distance() > 50:
-                pass
-            base.stop()
-            wait(1000)
-            base.straight(-50)
-            base.turn(800)
-            base.straight(-100)
-            wait(1000)
-            base.stop()
-            wait(1000)
-            print("acabou a sala de resgate 1.1")
-        else:
-            base.straight(-50)
-            base.turn(800)
-            base.stop()
-            wait(1000)
-            DescerGarra()
-            base.drive(300, -30)
-            wait(2000)
-            SubirGarra()
-            wait(1000)
-            base.drive(250, 0)
-            while ultra.distance() > 50:
-                pass
-            base.straight(-50)
-            base.turn(800)
-            base.straight(-100)
-            wait(1000)
-            base.stop()
-            wait(1000)
-            print("acabou a sala de resgate 1.2")
-
-    else:
-        base.turn(800)
-        wait(1000)
-        base.stop()
-        wait(1000)
-        base.drive(300, -100)
-        wait(4000)
-        base.stop()
-        wait(1000)
+        base.drive(0, -200)
+        wait(5000)
+        base.straight(-300)
+        cacamba.run(-300)
+        wait(2000)
+        cacamba.hold()
+    if areasupd == False and areainfe == True:
+        print("estou na sala3.3")
+        base.drive(0, -200)
+        wait(1800)
         base.drive(100, 0)
-        wait(500)
-        while ultra.distance() > 50:
+        while ultra.distance() > 70:
             pass
-        base.stop()
-        wait(1000)
-        rgbslf = slf.rgb()
-        if ((rgbslf[1] * rzslfredvv) < rgbslf[0] and (rgbslf[2] * rzslfredva) < rgbslf[0]) or ((rgbslf[0] * rzslfverdevv) <= rgbslf[1] and (rgbslf[2] * rzslfverdeva) <= rgbslf[1]): 
-            print("achei a area de resgate ocasião1.22")
-            base.stop()
-            wait(1000)
-            base.straight(-50)
-            base.turn(800)
-            base.straight(-100)
-            wait(1000)
-            base.stop()
-            wait(1000)
-            DescerGarra()
-            base.drive(300, -30)
-            wait(2000)
-            SubirGarra()
-            wait(1000)
-            base.drive(100, 0)
-            wait(500)
-            while ultra.distance() > 50:
-                pass
-            base.straight(-50)
-            base.turn(800)
-            base.straight(-100)
-            wait(1000)
-            base.stop()
-            wait(1000)
-            print("acabou a sala de resgate 1.3")"""
-
+        base.drive(0, -200)
+        wait(5000)
+        base.straight(-300)
+        cacamba.run(-300)
+        wait(5000)
+        cacamba.hold()
 estounarampa = False 
+
+#após uma quantia de tempo sem achar verde, obstaculo, e etc, o robô pensa que só está seguindo linha
+#então provavelmente ele está na rampa, vira para verificar se o ultrassonico vê algo
+#se ver algo, ele não executa o looping principal, ou seja, vai alinhar e fazer calculopid
 
 def VerificarRampa():
     global ultimoresettimer
@@ -651,30 +595,29 @@ def VerificarRampa():
         base.turn(335) #90 graus é a intenção
         wait(1000)
         if ultra.distance() < 70:
-            estounarampa = True 
-            fp = 500
-            kp = 8
+            estounarampa = True
         else: 
             estounarampa = False
             print("Não estou na rampa")
             ultimoresettimer = time.time()
         base.turn(-335)
 
-#326
-
-"""garra.hold()
+garra.hold()
 cacamba.hold()
 while Alinhar() != 1:
     pass
-Sala3()"""
+Sala3()
 
+#segura a garra, enquanto ele não estiver na rampa, faz calculopid, obstaculo, verde e verificar rampa
+#quando ele estiver na rampa ele irá alinhar e fazer calculopid, após alinhar ele irá fazer sala3
+"""
 garra.hold()
 while estounarampa == False:
     Calculopid()
     Obstaculo()
     Verde()
     VerificarRampa()
-while chavedefenda != 1:
+while alinhei != 1:
     Alinhar()
     Calculopid()
-Sala3()
+Sala3()"""
